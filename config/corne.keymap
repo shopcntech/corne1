@@ -54,10 +54,10 @@
             //                    | GUI |     | SPC |   | ENT |     | ALT |
 
             bindings = <
-&kp TAB           &kp N1           &kp N2       &kp N3    &kp N4      &kp N5               &kp N6            &kp N7          &kp N8           &kp N9                &kp N0                 &kp BSPC
-&mt LCTRL ESCAPE  &kp EXCLAMATION  &kp AT_SIGN  &kp HASH  &kp DOLLAR  &kp DOUBLE_QUOTES    &kp SINGLE_QUOTE  &kp LEFT_BRACE  &kp RIGHT_BRACE  &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &kp COLON
-&kp LSHFT         &trans           &trans       &trans    &trans      &trans               &trans            &trans          &trans           &trans                &trans                 &trans
-                                                &kp LGUI  &trans      &kp ENTER            &kp SPACE         &trans          &kp RALT
+&kp TAB           &kp N1           &kp N2       &kp N3    &kp N4      &kp N5              &kp N6             &kp N7          &kp N8           &kp N9                &kp N0                 &kp BSPC
+&mt LCTRL ESCAPE  &kp EXCLAMATION  &kp AT_SIGN  &kp HASH  &kp DOLLAR  &kp LEFT_BRACKET    &kp RIGHT_BRACKET  &kp LEFT_BRACE  &kp RIGHT_BRACE  &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &kp COLON
+&kp LSHFT         &trans           &trans       &trans    &trans      &trans              &kp MINUS          &kp UNDER       &kp STAR         &kp CARET             &trans                 &trans
+                                                &kp LGUI  &trans      &kp ENTER           &kp SPACE          &trans          &kp RALT
             >;
         };
 
@@ -73,7 +73,7 @@
             bindings = <
 &kp TAB    &kp F1        &kp F2       &kp F3       &kp F4         &kp F5                  &kp F6          &kp F7          &kp F8        &kp F9           &kp F10   &kp BSPC
 &kp LCTRL  &kp LC(HOME)  &kp LC(END)  &kp PAGE_UP  &kp PAGE_DOWN  &trans                  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp UP_ARROW  &kp RIGHT_ARROW  &kp BSLH  &kp GRAVE
-&kp LSHFT  &trans        &trans       &trans       &trans         &kp LS(LG(NUMBER_4))    &kp UNDER       &kp PLUS        &kp LBRC      &kp RBRC         &kp PIPE  &kp TILDE
+&kp LSHFT  &trans        &trans       &trans       &trans         &kp LS(LG(NUMBER_4))    &kp UNDERSCORE  &kp EQUAL       &kp PLUS      &kp RBRC         &kp PIPE  &kp TILDE
                                       &kp LGUI     &trans         &kp DELETE              &kp BACKSPACE   &trans          &kp RALT
             >;
         };
