@@ -4,62 +4,447 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <dt-bindings/zmk/mouse.h>
+
+/* Cấu hình tốc độ mouse (phải đặt trước include pointing.h) */
+/* MOVE_VAL giảm từ 1000 → 700 để mỗi bước nhỏ hơn, di chuyển mượt hơn */
+/* Kết hợp với LATENCY=0 trong config và tăng pointer speed Windows để bù tốc độ */
+
+#define ZMK_POINTING_DEFAULT_MOVE_VAL 700
+#define ZMK_POINTING_DEFAULT_SCRL_VAL 20
+
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/pointing.h>
+
+#define BASE   0
+#define LOWER  1
+#define RAISE  2
+#define NUMPAD 3
+#define FKEYS  4
+#define MOUSE  5
 
 / {
+    behaviors {
+        /* ─── Home Row Mod cho TAY TRÁI ─── */
+
+        hml: home_row_mod_left {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <280>;
+            quick-tap-ms = <175>;
+            require-prior-idle-ms = <150>;
+            bindings = <&kp>, <&kp>;
+
+            hold-trigger-key-positions = <
+                6  7  8  9  10 11
+                18 19 20 21 22 23
+                30 31 32 33 34 35
+                39 40 41
+            >;
+
+            hold-trigger-on-release;
+        };
+
+        /* ─── Home Row Mod cho TAY PHẢI ─── */
+
+        hmr: home_row_mod_right {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <280>;
+            quick-tap-ms = <175>;
+            require-prior-idle-ms = <150>;
+            bindings = <&kp>, <&kp>;
+
+            hold-trigger-key-positions = <
+                0  1  2  3  4  5
+                12 13 14 15 16 17
+                24 25 26 27 28 29
+                36 37 38
+            >;
+
+            hold-trigger-on-release;
+        };
+
+        /* ─── Tap-dance cho LOWER layer ─── */
+        /* Tap/Hold = mo LOWER (giữ để dùng), Double-tap = tog LOWER (rảnh tay) */
+
+        td_lower: tap_dance_lower {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <300>;
+            bindings = <&mo LOWER>, <&tog LOWER>;
+        };
+    };
+
+    macros {
+        fz_left: fz_left {
+            label = "FZ_LEFT";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press>,
+                <&kp LGUI>,
+                <&macro_press>,
+                <&kp LCTRL>,
+                <&macro_press>,
+                <&kp LALT>,
+                <&macro_tap>,
+                <&kp N1>,
+                <&macro_release>,
+                <&kp LALT>,
+                <&macro_release>,
+                <&kp LCTRL>,
+                <&macro_release>,
+                <&kp LGUI>;
+        };
+
+        fz_mid: fz_mid {
+            label = "FZ_MID";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press>,
+                <&kp LGUI>,
+                <&macro_press>,
+                <&kp LCTRL>,
+                <&macro_press>,
+                <&kp LALT>,
+                <&macro_tap>,
+                <&kp N2>,
+                <&macro_release>,
+                <&kp LALT>,
+                <&macro_release>,
+                <&kp LCTRL>,
+                <&macro_release>,
+                <&kp LGUI>;
+        };
+
+        fz_right: fz_right {
+            label = "FZ_RIGHT";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press>,
+                <&kp LGUI>,
+                <&macro_press>,
+                <&kp LCTRL>,
+                <&macro_press>,
+                <&kp LALT>,
+                <&macro_tap>,
+                <&kp N3>,
+                <&macro_release>,
+                <&kp LALT>,
+                <&macro_release>,
+                <&kp LCTRL>,
+                <&macro_release>,
+                <&kp LGUI>;
+        };
+
+        fz_cal: fz_cal {
+            label = "FZ_CAL";
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press>,
+                <&kp LGUI>,
+                <&macro_tap>,
+                <&kp R>,
+                <&macro_release>,
+                <&kp LGUI>,
+                <&macro_pause_for_release>,
+                <&macro_tap>,
+                <&kp C>,
+                <&macro_tap>,
+                <&kp A>,
+                <&macro_tap>,
+                <&kp L>,
+                <&macro_tap>,
+                <&kp C>,
+                <&macro_tap>,
+                <&kp ENTER>;
+        };
+
+        marco_shift_leftclick: marco_shift_leftclick {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press>,
+                <&kp LEFT_SHIFT &mkp LCLK>,
+                <&macro_pause_for_release>,
+                <&macro_release>,
+                <&mkp LCLK &kp LEFT_SHIFT>;
+
+            label = "MARCO_SHIFT_LEFTCLICK";
+        };
+    };
+
+    combos {
+        compatible = "zmk,combos";
+
+        /* ═══ TOGGLE MOUSE LAYER ─ Bấm đồng thời 2 phím thumb phải ═══ */
+        /* Tránh ảnh hưởng delay BSPC khi dùng tap-dance */
+
+        C_TogMouse {
+            bindings = <&tog MOUSE>;
+            key-positions = <40 41>;
+            layers = <0 5>;
+            timeout-ms = <30>;
+            require-prior-idle-ms = <300>;
+        };
+
+        /* ═══ SINGLE MODIFIER ─ Tay trái (thumb 38 + home row) ═══ */
+
+        C_Leftwin {
+            bindings = <&kp LGUI>;
+            key-positions = <38 13>;
+            layers = <0>;
+        };
+
+        C_LeftAlt {
+            bindings = <&kp LALT>;
+            key-positions = <38 14>;
+            layers = <0>;
+        };
+
+        C_LeftCtrl {
+            bindings = <&kp LCTRL>;
+            key-positions = <38 15>;
+            layers = <0>;
+        };
+
+        C_Leftshift {
+            bindings = <&kp LSHFT>;
+            key-positions = <38 16>;
+            layers = <0>;
+        };
+
+        /* ═══ SINGLE MODIFIER ─ Tay phải (thumb 39 + home row) ═══ */
+
+        C_RightWin {
+            bindings = <&kp RGUI>;
+            key-positions = <39 22>;
+            layers = <0>;
+        };
+
+        C_RightAlt {
+            bindings = <&kp LALT>;
+            key-positions = <39 21>;
+            layers = <0>;
+        };
+
+        C_RightCtrl {
+            bindings = <&kp RCTRL>;
+            key-positions = <39 20>;
+            layers = <0>;
+        };
+
+        C_RightShift {
+            bindings = <&kp RSHFT>;
+            key-positions = <39 19>;
+            layers = <0>;
+        };
+
+        /* ═══ DUAL MODIFIER ─ Tay trái ═══ */
+
+        C_L_CtrlShift {
+            bindings = <&kp LC(LSHFT)>;
+            key-positions = <38 15 16>;
+            layers = <0>;
+        };
+
+        C_L_AltCtrl {
+            bindings = <&kp LA(LCTRL)>;
+            key-positions = <38 14 15>;
+            layers = <0>;
+        };
+
+        C_L_GuiShift {
+            bindings = <&kp LG(LSHFT)>;
+            key-positions = <38 13 16>;
+            layers = <0>;
+        };
+
+        C_L_GuiCtrl {
+            bindings = <&kp LG(LCTRL)>;
+            key-positions = <38 13 15>;
+            layers = <0>;
+        };
+
+        C_L_AltShift {
+            bindings = <&kp LA(LSHFT)>;
+            key-positions = <38 14 16>;
+            layers = <0>;
+        };
+
+        C_L_GuiAlt {
+            bindings = <&kp LG(LALT)>;
+            key-positions = <38 13 14>;
+            layers = <0>;
+        };
+
+        /* ═══ DUAL MODIFIER ─ Tay phải ═══ */
+
+        C_R_CtrlShift {
+            bindings = <&kp RC(RSHFT)>;
+            key-positions = <39 20 19>;
+            layers = <0>;
+        };
+
+        C_R_AltCtrl {
+            bindings = <&kp LA(RCTRL)>;
+            key-positions = <39 21 20>;
+            layers = <0>;
+        };
+
+        C_R_GuiShift {
+            bindings = <&kp RG(RSHFT)>;
+            key-positions = <39 22 19>;
+            layers = <0>;
+        };
+
+        C_R_GuiCtrl {
+            bindings = <&kp RG(RCTRL)>;
+            key-positions = <39 22 20>;
+            layers = <0>;
+        };
+
+        C_R_AltShift {
+            bindings = <&kp LA(RSHFT)>;
+            key-positions = <39 21 19>;
+            layers = <0>;
+        };
+
+        C_R_GuiAlt {
+            bindings = <&kp RG(LALT)>;
+            key-positions = <39 22 21>;
+            layers = <0>;
+        };
+
+        /* ═══ TRIPLE MODIFIER ─ Tay trái ═══ */
+
+        C_L_CtrlAltShift {
+            bindings = <&kp LC(LA(LSHFT))>;
+            key-positions = <38 14 15 16>;
+            layers = <0>;
+        };
+
+        C_L_GuiCtrlShift {
+            bindings = <&kp LG(LC(LSHFT))>;
+            key-positions = <38 13 15 16>;
+            layers = <0>;
+        };
+
+        C_L_GuiAltShift {
+            bindings = <&kp LG(LA(LSHFT))>;
+            key-positions = <38 13 14 16>;
+            layers = <0>;
+        };
+
+        C_L_GuiCtrlAlt {
+            bindings = <&kp LG(LC(LALT))>;
+            key-positions = <38 13 14 15>;
+            layers = <0>;
+        };
+
+        /* ═══ TRIPLE MODIFIER ─ Tay phải ═══ */
+
+        C_R_CtrlAltShift {
+            bindings = <&kp RC(LA(RSHFT))>;
+            key-positions = <39 21 20 19>;
+            layers = <0>;
+        };
+
+        C_R_GuiCtrlShift {
+            bindings = <&kp RG(RC(RSHFT))>;
+            key-positions = <39 22 20 19>;
+            layers = <0>;
+        };
+
+        C_R_GuiAltShift {
+            bindings = <&kp RG(LA(RSHFT))>;
+            key-positions = <39 22 21 19>;
+            layers = <0>;
+        };
+
+        C_R_GuiCtrlAlt {
+            bindings = <&kp RG(RC(LALT))>;
+            key-positions = <39 22 21 20>;
+            layers = <0>;
+        };
+
+        C_BtClr {
+            bindings = <&bt BT_CLR>;
+            key-positions = <36 37 38>;
+            layers = <0>;
+            timeout-ms = <30>;
+            require-prior-idle-ms = <300>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
         default_layer {
-            display-name = "Default Layer";
-
-            // -----------------------------------------------------------------------------------------
-            // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BSPC |
-            // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
-            // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | ESC  |
-            //                    | GUI | LWR | SPC |   | ENT | RSE  | ALT |
-
+            label = "default";
             bindings = <
-&kp TAB    &kp Q  &kp W  &kp E     &kp R  &kp T        &kp Y    &kp U  &kp I      &kp O    &kp P     &kp BSPC
-&kp LCTRL  &kp A  &kp S  &kp D     &kp F  &kp G        &kp H    &kp J  &kp K      &kp L    &kp SEMI  &kp SQT
-&kp LSHFT  &kp Z  &kp X  &kp C     &kp V  &kp B        &kp N    &kp M  &kp COMMA  &kp DOT  &kp FSLH  &kp ESC
-                         &kp LGUI  &mo 1  &kp SPACE    &kp RET  &mo 2  &kp RALT
+&kp TAB    &kp Q  &kp W  &kp E       &kp R      &kp T        &kp Y      &kp U           &kp I      &kp O    &kp P     &kp BSPC
+&kp ESC    &kp A  &kp S  &kp D       &kp F      &kp G        &kp H      &kp J           &kp K      &kp L    &kp SEMI  &kp SQT
+&kp LSHFT  &kp Z  &kp X  &kp C       &kp V      &kp B        &kp N      &kp M           &kp COMMA  &kp DOT  &kp FSLH  &kp RSHFT
+                         &kp DELETE  &mo RAISE  &td_lower    &kp SPACE  &lt MOUSE BSPC  &kp ENTER
             >;
         };
 
-        lower_layer {
-            display-name = "Lower Layer";
-
-            // -----------------------------------------------------------------------------------------
-            // |  TAB |  1  |  2  |  3  |  4  |  5  |   |  6  |  7  |  8  |  9  |  0  | BSPC |
-            // | BTCLR| BT1 | BT2 | BT3 | BT4 | BT5 |   | LFT | DWN |  UP | RGT |     |      |
-            // | SHFT |     |     |     |     |     |   |     |     |     |     |     |      |
-            //                    | GUI |     | SPC |   | ENT |     | ALT |
-
+        arrow_layer {
+            label = "lower";
             bindings = <
-&kp TAB     &kp N1        &kp N2        &kp N3        &kp N4        &kp N5          &kp N6    &kp N7    &kp N8    &kp N9     &kp N0  &kp BSPC
-&bt BT_CLR  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4    &kp LEFT  &kp DOWN  &kp UP    &kp RIGHT  &trans  &kp DEL
-&kp LSHFT   &trans        &trans        &trans        &trans        &trans          &trans    &trans    &trans    &trans     &trans  &trans
-                                        &kp LGUI      &trans        &kp SPACE       &kp RET   &trans    &kp RALT
+&trans  &kp CAPSLOCK  &kp K_APP  &kp TAB    &kp ESCAPE  &kp LC(R)    &kp F4      &kp PG_UP  &kp UP     &kp PG_DN  &none          &trans
+&trans  &kp LGUI      &kp LALT   &kp LCTRL  &kp LSHFT   &kp LC(D)    &kp F2      &kp LEFT   &kp DOWN   &kp RIGHT  &kp SQT        &trans
+&trans  &kp LC(A)     &kp LC(X)  &kp LC(C)  &kp LC(V)   &kp LC(G)    &none       &kp HOME   &kp SPACE  &kp END    &kp BACKSLASH  &trans
+                                 &kp LC(Z)  &kp LC(Y)   &trans       &mo NUMPAD  &trans     &trans
             >;
         };
 
-        raise_layer {
-            display-name = "Raise Layer";
-
-            // -----------------------------------------------------------------------------------------
-            // |  TAB |  !  |  @  |  #  |  $  |  %  |   |  ^  |  &  |  *  |  (  |  )  | BSPC |
-            // | CTRL |     |     |     |     |     |   |  -  |  =  |  [  |  ]  |  \  |  `   |
-            // | SHFT |     |     |     |     |     |   |  _  |  +  |  {  |  }  | "|" |  ~   |
-            //                    | GUI |     | SPC |   | ENT |     | ALT |
-
+        symbols_layer {
+            label = "raise";
             bindings = <
-&kp TAB    &kp EXCL  &kp AT  &kp HASH  &kp DLLR  &kp PRCNT    &kp CARET  &kp AMPS   &kp ASTRK  &kp LPAR  &kp RPAR  &kp BSPC
-&kp LCTRL  &trans    &trans  &trans    &trans    &trans       &kp MINUS  &kp EQUAL  &kp LBKT   &kp RBKT  &kp BSLH  &kp GRAVE
-&kp LSHFT  &trans    &trans  &trans    &trans    &trans       &kp UNDER  &kp PLUS   &kp LBRC   &kp RBRC  &kp PIPE  &kp TILDE
-                             &kp LGUI  &trans    &kp SPACE    &kp RET    &trans     &kp RALT
+&trans  &none     &none     &kp TAB    &kp ESC    &none        &kp PIPE   &kp ASTRK  &kp LPAR  &kp RPAR  &kp FSLH   &trans
+&trans  &kp LGUI  &kp LALT  &kp LCTRL  &kp LSHFT  &none        &kp EQUAL  &kp PLUS   &kp LBKT  &kp RBKT  &kp MINUS  &trans
+&trans  &fz_cal   &fz_left  &fz_mid    &fz_right  &kp PSCRN    &kp GRAVE  &kp AMPS   &kp LBRC  &kp RBRC  &kp BSLH   &trans
+                            &trans     &trans     &trans       &mo FKEYS  &trans     &trans
+            >;
+        };
+
+        numpad_layer {
+            label = "numpad";
+            bindings = <
+&trans  &none     &none     &kp TAB    &kp ESCAPE  &none     &none   &kp N7  &kp N8  &kp N9  &none         &trans
+&trans  &kp LGUI  &kp LALT  &kp LCTRL  &kp LSHFT   &none     &none   &kp N4  &kp N5  &kp N6  &kp NUMBER_0  &trans
+&trans  &none     &none     &none      &none       &none     &none   &kp N1  &kp N2  &kp N3  &kp DOT       &trans
+                            &trans     &trans      &trans    &trans  &trans  &trans
+            >;
+        };
+
+        f_layer {
+            label = "fkeys";
+            bindings = <
+&trans  &none     &none     &kp TAB    &kp ESCAPE  &none     &none   &kp F7  &kp F8  &kp F9  &kp F12  &trans
+&trans  &kp LGUI  &kp LALT  &kp LCTRL  &kp LSHFT   &none     &none   &kp F4  &kp F5  &kp F6  &kp F11  &trans
+&trans  &none     &none     &none      &none       &none     &none   &kp F1  &kp F2  &kp F3  &kp F10  &trans
+                            &trans     &trans      &trans    &trans  &trans  &trans
+            >;
+        };
+
+        mouse_layer {
+            label = "mouse";
+            bindings = <
+&trans  &bt BT_SEL 0  &msc SCRL_UP    &mmv MOVE_UP    &msc SCRL_DOWN   &bt BT_SEL 2    &kp C_PLAY_PAUSE        &kp C_PREVIOUS  &kp C_VOLUME_DOWN  &kp C_VOLUME_UP  &kp C_NEXT  &bt BT_CLR
+&trans  &bt BT_SEL 1  &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_RIGHT  &bt BT_SEL 3    &marco_shift_leftclick  &kp RSHFT       &kp RCTRL          &kp RALT         &kp RGUI    &trans
+&trans  &mkp MB4      &msc SCRL_LEFT  &none           &msc SCRL_RIGHT  &mkp MB5        &trans                  &mkp LCLK       &mkp MCLK          &mkp RCLK        &kp C_MUTE  &trans
+                                      &trans          &trans           &trans          &trans                  &trans          &trans
             >;
         };
     };
